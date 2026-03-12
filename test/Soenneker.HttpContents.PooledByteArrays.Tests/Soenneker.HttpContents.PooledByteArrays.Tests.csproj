@@ -15,7 +15,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\src\Soenneker.HttpContents.PooledByteArrays.csproj" />
+        <ProjectReference Include="..\..\src\Soenneker.HttpContents.PooledByteArrays\Soenneker.HttpContents.PooledByteArrays.csproj" />
     </ItemGroup>
 
     <ItemGroup>
