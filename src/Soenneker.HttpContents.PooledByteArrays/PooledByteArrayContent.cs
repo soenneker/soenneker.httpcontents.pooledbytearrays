@@ -22,8 +22,16 @@ public sealed class PooledByteArrayContent : HttpContent
     private readonly ArrayPool<byte> _pool;
     private byte[]? _buffer;
     private readonly int _count;
+    private readonly bool _clearArrayOnDispose;
 
-    public PooledByteArrayContent(ArrayPool<byte> pool, byte[] buffer, int count)
+    /// <summary>
+    /// Takes ownership of a rented buffer and exposes its first <paramref name="count"/> bytes as HTTP content.
+    /// </summary>
+    /// <param name="pool">The pool that rented <paramref name="buffer"/> and will receive it when this content is disposed.</param>
+    /// <param name="buffer">A buffer rented from <paramref name="pool"/>. The caller must not use or return it after construction.</param>
+    /// <param name="count">The number of initialized bytes to expose.</param>
+    /// <param name="clearArrayOnDispose">Whether the pool should clear the array before making it available to another renter.</param>
+    public PooledByteArrayContent(ArrayPool<byte> pool, byte[] buffer, int count, bool clearArrayOnDispose = false)
     {
         _pool = pool ?? throw new ArgumentNullException(nameof(pool));
         _buffer = buffer ?? throw new ArgumentNullException(nameof(buffer));
@@ -32,6 +40,7 @@ public sealed class PooledByteArrayContent : HttpContent
             throw new ArgumentOutOfRangeException(nameof(count));
 
         _count = count;
+        _clearArrayOnDispose = clearArrayOnDispose;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -77,14 +86,14 @@ public sealed class PooledByteArrayContent : HttpContent
 
     protected override void Dispose(bool disposing)
     {
+        base.Dispose(disposing);
+
         if (disposing)
         {
             byte[]? buffer = Interlocked.Exchange(ref _buffer, null);
 
             if (buffer is not null)
-                _pool.Return(buffer);
+                _pool.Return(buffer, _clearArrayOnDispose);
         }
-
-        base.Dispose(disposing);
     }
 }
