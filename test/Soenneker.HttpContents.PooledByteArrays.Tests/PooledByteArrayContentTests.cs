@@ -14,7 +14,7 @@ public sealed class PooledByteArrayContentTests : UnitTest
     }
 
     [Test]
-    public async Task Exposes_only_count_and_returns_buffer_once()
+    public async ValueTask Exposes_only_count_and_returns_buffer_once()
     {
         var pool = new TrackingPool();
         byte[] buffer = [1, 2, 3, 99, 100];
