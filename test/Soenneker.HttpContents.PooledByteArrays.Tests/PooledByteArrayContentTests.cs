@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Linq;
 using System.Threading.Tasks;
 using Soenneker.Tests.Unit;
+using System.Threading;
 
 namespace Soenneker.HttpContents.PooledByteArrays.Tests;
 
@@ -14,13 +15,13 @@ public sealed class PooledByteArrayContentTests : UnitTest
     }
 
     [Test]
-    public async ValueTask Exposes_only_count_and_returns_buffer_once()
+    public async ValueTask Exposes_only_count_and_returns_buffer_once(CancellationToken cancellationToken)
     {
         var pool = new TrackingPool();
         byte[] buffer = [1, 2, 3, 99, 100];
         var content = new PooledByteArrayContent(pool, buffer, 3, clearArrayOnDispose: true);
 
-        byte[] body = await content.ReadAsByteArrayAsync();
+        byte[] body = await content.ReadAsByteArrayAsync(cancellationToken: cancellationToken);
 
         await Assert.That(body.SequenceEqual(new byte[] { 1, 2, 3 })).IsTrue();
         await Assert.That(content.Headers.ContentLength).IsEqualTo(3);
